@@ -230,6 +230,7 @@ def get_args():
 
 if __name__ == "__main__":
     toolbox = prepare_and_get_toolbox(backend=Tractorch())
+    os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
     args = get_args()
     config_file = args.config_file
 
