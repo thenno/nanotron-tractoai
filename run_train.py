@@ -31,6 +31,7 @@ from nanotron.utils import main_rank_first
 from torch.utils.data import DataLoader
 
 from tractorun.run import prepare_and_get_toolbox
+from tractorun.backend.tractorch import Tractorch
 
 try:
     from huggingface_hub import __version__ as hf_hub_version
@@ -228,7 +229,7 @@ def get_args():
 
 
 if __name__ == "__main__":
-    toolbox = prepare_and_get_toolbox()
+    toolbox = prepare_and_get_toolbox(backend=Tractorch())
     args = get_args()
     config_file = args.config_file
 
