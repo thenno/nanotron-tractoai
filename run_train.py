@@ -229,6 +229,10 @@ def get_args():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    )
     toolbox = prepare_and_get_toolbox(backend=Tractorch())
     args = get_args()
     config_file = args.config_file
