@@ -121,6 +121,11 @@ class NanosetDatasetsArgs:
 
 
 @dataclass
+class TractoDatasetsArgs:
+    dataset_path: Union[str, List[str]]
+
+
+@dataclass
 class DataArgs:
     """Arguments related to the data and data files processing"""
 

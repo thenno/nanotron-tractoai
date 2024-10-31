@@ -22,6 +22,7 @@ from typing import (
 import torch
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader
+from tractorun.toolbox import Toolbox
 
 from nanotron import distributed as dist
 from nanotron import logging
@@ -119,6 +120,7 @@ except ImportError:
 class DistributedTrainer:
     def __init__(
         self,
+        toolbox: Toolbox,
         config_or_config_file: Union[Config, str],
         config_class: Type[Config] = Config,
         model_config_class: Optional[Type] = None,

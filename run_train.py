@@ -13,7 +13,7 @@ from typing import Dict, cast
 
 import numpy as np
 from nanotron import logging
-from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs
+from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, TractoDatasetsArgs
 from nanotron.data.dataloader_builder import build_nanoset_dataloader
 from nanotron.dataloader import (
     clm_process,
@@ -32,7 +32,7 @@ from nanotron.utils import main_rank_first
 from torch.utils.data import DataLoader
 
 from tractorun.run import prepare_and_get_toolbox
-from tractorun.backend.tractorch import Tractorch
+from tractorun.backend.tractorch import Tractorch, YtDataset
 
 try:
     from huggingface_hub import __version__ as hf_hub_version
@@ -176,6 +176,27 @@ def get_dataloader_from_data_stage(
         )
 
         return train_dataloader
+    elif isinstance(data.dataset, TractoDatasetsArgs):
+        train_dataset = YtDataset(
+            path=data.dataset.dataset_path,
+            yt_client=trainer.toolbox.yt_client,
+            transform=[],
+        )
+
+        # Prepare dataloader
+        train_dataloader = build_nanoset_dataloader(
+            train_dataset,
+            trainer.sequence_length,
+            parallel_context=trainer.parallel_context,
+            input_pp_rank=input_pp_rank,
+            output_pp_rank=output_pp_rank,
+            micro_batch_size=trainer.micro_batch_size,
+            consumed_train_samples=consumed_train_samples,
+            dataloader_num_workers=data.num_loading_workers,
+            dataloader_drop_last=True,
+        )
+
+        return train_dataloader
     else:
         raise ValueError(f"Unhandled case of `self.config.data.dataset`. Got: {data.dataset}")
 
@@ -236,7 +257,7 @@ if __name__ == "__main__":
     config_file = args.config_file
 
     # Load trainer and data
-    trainer = DistributedTrainer(config_file, toolbox=toolbox)
+    trainer = DistributedTrainer(config_or_config_file=config_file, toolbox=toolbox)
     dataloader = get_dataloader(trainer)
 
     # Train
