@@ -20,7 +20,7 @@ RUN pip install packaging ninja
 
 RUN pip install triton "flash-attn>=2.5.0" --no-build-isolation
 
-RUN pip install "tractorun==0.44.0"
+RUN pip install "tractorun==0.45.0"
 RUN pip install "datatrove[io]"
 RUN pip install numba
 COPY gai.conf /etc/gai.conf
