@@ -125,7 +125,6 @@ class DistributedTrainer:
         config_class: Type[Config] = Config,
         model_config_class: Optional[Type] = None,
         model_class: Type[NanotronModel] = None,
-        toolbox: Optional[Toolbox] = None,
     ):
         """
         Nanotron's distributed trainer.
