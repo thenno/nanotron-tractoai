@@ -12,8 +12,10 @@ import argparse
 from typing import Dict, cast
 
 import numpy as np
+from tractorun.toolbox import Toolbox
+
 from nanotron import logging
-from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, TractoDatasetsArgs
+from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, TractoDatasetsArgs, \
 from nanotron.data.dataloader_builder import build_nanoset_dataloader
 from nanotron.dataloader import (
     clm_process,
@@ -32,7 +34,9 @@ from nanotron.utils import main_rank_first
 from torch.utils.data import DataLoader
 
 from tractorun.run import prepare_and_get_toolbox
-from tractorun.backend.tractorch import Tractorch, YtDataset
+from tractorun.backend.tractorch import Tractorch, YtDataset, TensorSerializer
+import yt.wrapper as wrapper
+import yt
 
 try:
     from huggingface_hub import __version__ as hf_hub_version
@@ -177,10 +181,17 @@ def get_dataloader_from_data_stage(
 
         return train_dataloader
     elif isinstance(data.dataset, TractoDatasetsArgs):
+        tensor_serializer = TensorSerializer()
+        class YTTensorTransform:
+            def __call__(self, columns: list[str], row: dict) -> dict:
+                return {
+                    name: tensor_serializer.desirialize(yt.yson.get_bytes(row[name]))
+                    for name in columns
+                }
         train_dataset = YtDataset(
             path=data.dataset.dataset_path,
             yt_client=trainer.toolbox.yt_client,
-            transform=[],
+            transform=YTTensorTransform(),
         )
 
         # Prepare dataloader
@@ -251,7 +262,15 @@ def get_args():
 
 
 if __name__ == "__main__":
-    toolbox = prepare_and_get_toolbox(backend=Tractorch())
+    toolbox = Toolbox(
+        coordinator=None,
+        checkpoint_manager=None,
+        description_manager=None,
+        yt_client=wrapper.YtClient(config=wrapper.default_config.get_config_from_env()),
+        mesh=None,
+        training_dir=None,
+        training_metadata=None,
+    )
     os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
     args = get_args()
     config_file = args.config_file
