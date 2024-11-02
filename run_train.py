@@ -12,11 +12,12 @@ import argparse
 from typing import Dict, cast
 
 import numpy as np
+from examples.misc.infiniband_speed_test.infiniband_speed_test import toolbox
 from tractorun.toolbox import Toolbox
 
 from nanotron import logging
-from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, TractoDatasetsArgs, \
-from nanotron.data.dataloader_builder import build_nanoset_dataloader
+from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, TractoDatasetsArgs
+from nanotron.data.dataloader_builder import build_nanoset_dataloader, build_tracto_dataloader
 from nanotron.dataloader import (
     clm_process,
     dummy_infinite_data_generator,
@@ -262,15 +263,7 @@ def get_args():
 
 
 if __name__ == "__main__":
-    toolbox = Toolbox(
-        coordinator=None,
-        checkpoint_manager=None,
-        description_manager=None,
-        yt_client=wrapper.YtClient(config=wrapper.default_config.get_config_from_env()),
-        mesh=None,
-        training_dir=None,
-        training_metadata=None,
-    )
+    toolbox = prepare_and_get_toolbox(backend=Tractorch())
     os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
     args = get_args()
     config_file = args.config_file
