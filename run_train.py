@@ -12,8 +12,6 @@ import argparse
 from typing import Dict, cast
 
 import numpy as np
-from examples.misc.infiniband_speed_test.infiniband_speed_test import toolbox
-from tractorun.toolbox import Toolbox
 
 from nanotron import logging
 from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, TractoDatasetsArgs
