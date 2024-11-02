@@ -70,15 +70,15 @@ class TractoTableDatasetDistributedSampler(Sampler[_T_co]):
         dataset: TractoTableDataset,
         num_replicas: int | None = None,
         rank: int | None = None,
-        consumed_train_samples: int | None = None,
+        consumed_raws: int | None = None,
     ) -> None:
         # here we just drop line that do not fit into the last chunk
         dp_chunk_size = len(dataset) // num_replicas
         start = rank * dp_chunk_size
         end = start + dp_chunk_size - 1
 
-        if consumed_train_samples:
-            start = start + consumed_train_samples
+        if consumed_raws:
+            start = start + consumed_raws
 
         self._dataset = dataset.to_dp(start=start, end=end)
         self._num_replicas = num_replicas

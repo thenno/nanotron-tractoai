@@ -56,13 +56,13 @@ def get_sampler(
     dl_ranks_size: int,
     dl_rank: int,
     train_dataset: TractoTableDataset,
-    consumed_train_samples: int,
+    consumed_raws: int,
 ) -> Optional[torch.utils.data.Sampler]:
     sampler = TractoTableDatasetDistributedSampler(
         train_dataset,
         num_replicas=dl_ranks_size,
         rank=dl_rank,
-        consumed_train_samples=consumed_train_samples,
+        consumed_raws=consumed_raws,
     )
 
     return sampler
@@ -101,7 +101,7 @@ def build_tractoloader(
         train_dataset=dataset,
         dl_ranks_size=dp_ranks_size,
         dl_rank=dp_rank,
-        consumed_train_samples=consumed_train_samples,
+        consumed_raws=consumed_train_samples * micro_batch_size,
     )
 
     return DataLoader(
