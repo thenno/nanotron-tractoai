@@ -45,9 +45,9 @@ class TractosetDataCollatorForCLM:
 
         result: Dict[str, torch.Tensor] = {
             "input_ids": torch.vstack([example["input_ids"] for example in examples]),
-            "input_mask": torch.vstack([example["input_ids"] for example in examples]),
-            "label_ids": torch.vstack([example["input_ids"] for example in examples]),
-            "label_mask": torch.vstack([example["input_ids"] for example in examples])
+            "input_mask": torch.vstack([example["input_mask"] for example in examples]),
+            "label_ids": torch.vstack([example["label_ids"] for example in examples]),
+            "label_mask": torch.vstack([example["label_mask"] for example in examples])
         }
         return result
 
