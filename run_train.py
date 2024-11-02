@@ -13,7 +13,8 @@ from typing import Dict, cast
 
 import numpy as np
 from nanotron import logging
-from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs
+from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, YtFsFileDatasetArgs, \
+    YtMemFileDatasetArgs
 from nanotron.data.dataloader_builder import build_nanoset_dataloader
 from nanotron.dataloader import (
     clm_process,
@@ -176,6 +177,34 @@ def get_dataloader_from_data_stage(
         )
 
         return train_dataloader
+    elif isinstance(data.dataset, (YtFsFileDatasetArgs, YtMemFileDatasetArgs)):
+        tokenizer = AutoTokenizer.from_pretrained(trainer.config.tokenizer.tokenizer_name_or_path)
+        token_size = 4 if len(tokenizer) > np.iinfo(np.uint16).max + 1 else 2
+        del tokenizer
+        from nanotron.yt_dataset import YtFsFileDataset, YtMemFileDataset
+        dataset_type = YtFsFileDataset if isinstance(data.dataset, YtFsFileDatasetArgs) else YtMemFileDataset
+        with main_rank_first(trainer.parallel_context.world_pg):
+            train_dataset = dataset_type(
+                yt_client=toolbox.yt_client,
+                yt_dataset_paths=data.dataset.yt_dataset_path,
+                dataset_weights=data.dataset.dataset_weights,
+                sequence_length=trainer.sequence_length,
+                token_size=token_size,
+                train_split_num_samples=trainer.config.tokens.train_steps * trainer.global_batch_size,
+                random_seed=data.seed,
+            )
+            train_dataloader = build_nanoset_dataloader(
+                train_dataset,
+                trainer.sequence_length,
+                parallel_context=trainer.parallel_context,
+                input_pp_rank=input_pp_rank,
+                output_pp_rank=output_pp_rank,
+                micro_batch_size=trainer.micro_batch_size,
+                consumed_train_samples=consumed_train_samples,
+                dataloader_num_workers=data.num_loading_workers,
+                dataloader_drop_last=True,
+            )
+            return train_dataloader
     else:
         raise ValueError(f"Unhandled case of `self.config.data.dataset`. Got: {data.dataset}")
 
