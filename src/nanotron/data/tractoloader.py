@@ -24,14 +24,6 @@ logger = logging.get_logger(__name__)
 
 @dataclasses.dataclass
 class TractosetDataCollatorForCLM:
-    """
-    Data collator used for causal language modeling with Nanosets dataset.
-
-    - input_pp_rank: Discards last input id token
-    - output_pp_rank: Discards first label id token
-    - other pp ranks: Don't have data. Instead, we use `TensorPointer` to point to the rank having the data.
-    """
-
     input_pp_rank: int
     output_pp_rank: int
     parallel_context: ParallelContext
