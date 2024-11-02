@@ -30,7 +30,7 @@ class YTTensorTransform:
         }
 
 
-class YtTableDataset(YtDataset):
+class TractoTableDataset(YtDataset):
     def __init__(
         self,
         yt_client: yt.YtClient,
@@ -54,8 +54,8 @@ class YtTableDataset(YtDataset):
             transform=YTTensorTransform(),
         )
 
-    def to_dp(self, start: int, end: int) -> "YtTableDataset":
-        return YtTableDataset(
+    def to_dp(self, start: int, end: int) -> "TractoTableDataset":
+        return TractoTableDataset(
             yt_client=self.yt_client,
             path=self.path,
             columns=self.columns,
@@ -64,10 +64,10 @@ class YtTableDataset(YtDataset):
         )
 
 
-class YtTableDatasetDistributedSampler(Sampler[_T_co]):
+class TractoTableDatasetDistributedSampler(Sampler[_T_co]):
     def __init__(
         self,
-        dataset: YtTableDataset,
+        dataset: TractoTableDataset,
         num_replicas: int | None = None,
         rank: int | None = None,
     ) -> None:
@@ -84,7 +84,7 @@ class YtTableDatasetDistributedSampler(Sampler[_T_co]):
         return self._dataset.__iter__()
 
 
-class YtFsFileDataset(torch.utils.data.Dataset):
+class TractoFsFileDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         yt_client: yt.YtClient,
@@ -125,7 +125,7 @@ class YtFsFileDataset(torch.utils.data.Dataset):
         return self.dataset[idx]
 
 
-class YtMemFileDataset(torch.utils.data.Dataset):
+class TractoMemFileDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         yt_client: yt.YtClient,

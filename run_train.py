@@ -13,8 +13,8 @@ from typing import Dict, cast
 
 import numpy as np
 from nanotron import logging
-from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, YtFsFileDatasetArgs, \
-    YtMemFileDatasetArgs
+from nanotron.config import DataArgs, DatasetStageArgs, NanosetDatasetsArgs, PretrainDatasetsArgs, TractoFsFileDatasetArgs, \
+    TractoMemFileDatasetArgs
 from nanotron.data.dataloader_builder import build_nanoset_dataloader
 from nanotron.dataloader import (
     clm_process,
@@ -177,12 +177,12 @@ def get_dataloader_from_data_stage(
         )
 
         return train_dataloader
-    elif isinstance(data.dataset, (YtFsFileDatasetArgs, YtMemFileDatasetArgs)):
+    elif isinstance(data.dataset, (TractoFsFileDatasetArgs, TractoMemFileDatasetArgs)):
         tokenizer = AutoTokenizer.from_pretrained(trainer.config.tokenizer.tokenizer_name_or_path)
         token_size = 4 if len(tokenizer) > np.iinfo(np.uint16).max + 1 else 2
         del tokenizer
-        from nanotron.yt_dataset import YtFsFileDataset, YtMemFileDataset
-        dataset_type = YtFsFileDataset if isinstance(data.dataset, YtFsFileDatasetArgs) else YtMemFileDataset
+        from nanotron.data.tractoset import TractoFsFileDataset, TractoMemFileDataset
+        dataset_type = TractoFsFileDataset if isinstance(data.dataset, TractoFsFileDatasetArgs) else TractoMemFileDataset
         with main_rank_first(trainer.parallel_context.world_pg):
             train_dataset = dataset_type(
                 yt_client=toolbox.yt_client,

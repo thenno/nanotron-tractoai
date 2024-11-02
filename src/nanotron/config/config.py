@@ -121,22 +121,22 @@ class NanosetDatasetsArgs:
 
 
 @dataclass
-class YtTableDatasetArgs:
-    yt_dataset_type: Literal["yt_table"]
+class TractoTableDatasetArgs:
+    tracto_dataset: Literal["yt_table"]
     # it's much better to merge multiple tables into single one
     yt_dataset_path: str
 
 
 @dataclass
-class YtFsFileDatasetArgs:
-    yt_dataset_type: Literal["yt_fs_file"]
+class TractoFsFileDatasetArgs:
+    tracto_dataset: Literal["yt_fs_file"]
     yt_dataset_path: list[str]
     dataset_weights: Optional[List[float]] = None
 
 
 @dataclass
-class YtMemFileDatasetArgs:
-    yt_dataset_type: Literal["yt_mem_file"]
+class TractoMemFileDatasetArgs:
+    tracto_dataset: Literal["yt_mem_file"]
     yt_dataset_path: list[str]
     dataset_weights: Optional[List[float]] = None
 
@@ -149,9 +149,9 @@ class DataArgs:
         Union[
             PretrainDatasetsArgs,
             NanosetDatasetsArgs,
-            YtMemFileDatasetArgs,
-            YtTableDatasetArgs,
-            YtFsFileDatasetArgs,
+            TractoMemFileDatasetArgs,
+            TractoTableDatasetArgs,
+            TractoFsFileDatasetArgs,
         ]
     ]
     seed: Optional[int]
