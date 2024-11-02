@@ -31,6 +31,7 @@ class YTTensorTransform:
 
 
 class TractoTableDataset(YtDataset):
+    # the most optimal way to process datasets
     def __init__(
         self,
         yt_client: yt.YtClient,
@@ -65,6 +66,9 @@ class TractoTableDataset(YtDataset):
 
 
 class TractoTableDatasetDistributedSampler(Sampler[_T_co]):
+    # DistributedSampler + SkipBatchSampler analog
+    # it should be separated to distributed and checkpoint samplers
+
     def __init__(
         self,
         dataset: TractoTableDataset,
@@ -90,6 +94,8 @@ class TractoTableDatasetDistributedSampler(Sampler[_T_co]):
 
 
 class TractoFsFileDataset(torch.utils.data.Dataset):
+    # just a wrapper for Nanoset
+    # download file from YT and store it to the local fs
     def __init__(
         self,
         yt_client: yt.YtClient,
@@ -131,6 +137,7 @@ class TractoFsFileDataset(torch.utils.data.Dataset):
 
 
 class TractoMemFileDataset(torch.utils.data.Dataset):
+    # download file from YT and map it to RAM
     def __init__(
         self,
         yt_client: yt.YtClient,

@@ -1,15 +1,11 @@
 import dataclasses
 from typing import Dict, List, Union, Optional
-import warnings
 
 import torch
-import numpy as np
-from pyarrow.dataset import dataset
 from torch.utils.data import DataLoader
 
 import nanotron.distributed as dist
 from nanotron import logging
-from nanotron.data.collator import NanosetDataCollatorForCLM
 from nanotron.data.tractoset import TractoTableDataset
 from nanotron.data.tractoset import TractoTableDatasetDistributedSampler
 from nanotron.dataloader import (
@@ -24,6 +20,7 @@ logger = logging.get_logger(__name__)
 
 @dataclasses.dataclass
 class TractosetDataCollatorForCLM:
+    # I'm not sure this thing is needed for iterable dataset
     input_pp_rank: int
     output_pp_rank: int
     parallel_context: ParallelContext
