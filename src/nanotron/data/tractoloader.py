@@ -3,6 +3,7 @@ from typing import Dict, List, Union, Optional
 
 import torch
 from torch.utils.data import DataLoader
+from tractorun.backend.tractorch import YtDataset
 
 import nanotron.distributed as dist
 from nanotron import logging
@@ -49,20 +50,21 @@ class TractosetDataCollatorForCLM:
         return result
 
 
-def get_sampler(
+def get_sampled_dataset(
     dl_ranks_size: int,
     dl_rank: int,
     train_dataset: TractoTableDataset,
     consumed_raws: int,
-) -> Optional[torch.utils.data.Sampler]:
-    sampler = TractoTableDatasetDistributedSampler(
-        train_dataset,
-        num_replicas=dl_ranks_size,
-        rank=dl_rank,
-        consumed_raws=consumed_raws,
-    )
+) -> TractoTableDataset:
+    # here we just drop line that do not fit into the last chunk
+    dp_chunk_size = len(train_dataset) // dl_ranks_size
+    start = dl_rank * dp_chunk_size
+    end = start + dp_chunk_size - 1
 
-    return sampler
+    if consumed_raws:
+        start = start + consumed_raws
+
+    return train_dataset.to_dp(start=start, end=end)
 
 
 def build_tractoloader(
@@ -88,7 +90,7 @@ def build_tractoloader(
     dp_ranks_size = parallel_context.dp_pg.size()
     dp_rank = parallel_context.dp_pg.rank()
 
-    sampler = get_sampler(
+    dataset = get_sampled_dataset(
         train_dataset=dataset,
         dl_ranks_size=dp_ranks_size,
         dl_rank=dp_rank,
@@ -98,7 +100,6 @@ def build_tractoloader(
     return DataLoader(
         dataset,
         batch_size=micro_batch_size,
-        sampler=sampler,
         drop_last=dataloader_drop_last,
         num_workers=dataloader_num_workers,
         pin_memory=dataloader_pin_memory,

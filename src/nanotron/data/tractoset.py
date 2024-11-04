@@ -65,34 +65,6 @@ class TractoTableDataset(YtDataset):
         )
 
 
-class TractoTableDatasetDistributedSampler(Sampler[_T_co]):
-    # DistributedSampler + SkipBatchSampler analog
-    # it should be separated to distributed and checkpoint samplers
-
-    def __init__(
-        self,
-        dataset: TractoTableDataset,
-        num_replicas: int | None = None,
-        rank: int | None = None,
-        consumed_raws: int | None = None,
-    ) -> None:
-        # here we just drop line that do not fit into the last chunk
-        dp_chunk_size = len(dataset) // num_replicas
-        start = rank * dp_chunk_size
-        end = start + dp_chunk_size - 1
-
-        if consumed_raws:
-            start = start + consumed_raws
-
-        self._dataset = dataset.to_dp(start=start, end=end)
-        self._num_replicas = num_replicas
-        self._rank = rank
-        super().__init__()
-
-    def __iter__(self):
-        return self._dataset.__iter__()
-
-
 class TractoFsFileDataset(torch.utils.data.Dataset):
     # just a wrapper for Nanoset
     # download file from YT and store it to the local fs
