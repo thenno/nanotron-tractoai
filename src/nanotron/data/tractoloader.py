@@ -20,7 +20,7 @@ logger = logging.get_logger(__name__)
 
 @dataclasses.dataclass
 class TractosetDataCollatorForCLM:
-    # I'm not sure this thing is needed for iterable dataset
+    # we don't need a collator for iterable dataset
     input_pp_rank: int
     output_pp_rank: int
     parallel_context: ParallelContext
@@ -84,12 +84,6 @@ def build_tractoloader(
         # No need to spawn a lot of workers, we can just use main
         dataloader_num_workers = 0
 
-    data_collator = TractosetDataCollatorForCLM(
-        input_pp_rank=input_pp_rank,
-        output_pp_rank=output_pp_rank,
-        parallel_context=parallel_context,
-    )
-
     # Compute size and rank of dataloader workers
     dp_ranks_size = parallel_context.dp_pg.size()
     dp_rank = parallel_context.dp_pg.rank()
@@ -98,14 +92,13 @@ def build_tractoloader(
         train_dataset=dataset,
         dl_ranks_size=dp_ranks_size,
         dl_rank=dp_rank,
-        consumed_raws=consumed_train_samples * micro_batch_size,
+        consumed_raws=(consumed_train_samples // dp_ranks_size),
     )
 
     return DataLoader(
         dataset,
         batch_size=micro_batch_size,
         sampler=sampler,
-        collate_fn=data_collator,
         drop_last=dataloader_drop_last,
         num_workers=dataloader_num_workers,
         pin_memory=dataloader_pin_memory,
