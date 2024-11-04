@@ -1,14 +1,12 @@
 import dataclasses
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union
 
 import torch
 from torch.utils.data import DataLoader
-from tractorun.backend.tractorch import YtDataset
 
 import nanotron.distributed as dist
 from nanotron import logging
 from nanotron.data.tractoset import TractoTableDataset
-from nanotron.data.tractoset import TractoTableDatasetDistributedSampler
 from nanotron.dataloader import (
     EmptyInfiniteDataset,
     get_dataloader_worker_init,
