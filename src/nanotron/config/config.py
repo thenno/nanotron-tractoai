@@ -2,7 +2,7 @@ import datetime
 import os
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import List, Optional, Type, Union
+from typing import List, Optional, Type, Union, Literal
 
 import dacite
 import torch
@@ -121,10 +121,39 @@ class NanosetDatasetsArgs:
 
 
 @dataclass
+class TractoTableDatasetArgs:
+    tracto_dataset: Literal["yt_table"]
+    # it's much better to merge multiple tables into single one
+    yt_dataset_path: str
+
+
+@dataclass
+class TractoFsFileDatasetArgs:
+    tracto_dataset: Literal["yt_fs_file"]
+    yt_dataset_path: list[str]
+    dataset_weights: Optional[List[float]] = None
+
+
+@dataclass
+class TractoMemFileDatasetArgs:
+    tracto_dataset: Literal["yt_mem_file"]
+    yt_dataset_path: list[str]
+    dataset_weights: Optional[List[float]] = None
+
+
+@dataclass
 class DataArgs:
     """Arguments related to the data and data files processing"""
 
-    dataset: Optional[Union[PretrainDatasetsArgs, NanosetDatasetsArgs]]
+    dataset: Optional[
+        Union[
+            PretrainDatasetsArgs,
+            NanosetDatasetsArgs,
+            TractoMemFileDatasetArgs,
+            TractoTableDatasetArgs,
+            TractoFsFileDatasetArgs,
+        ]
+    ]
     seed: Optional[int]
     num_loading_workers: Optional[int] = 1
 
@@ -174,6 +203,7 @@ class TractoCheckpointsArgs:
     resume_checkpoint_path: Optional[str] = None
     checkpoints_medium: Optional[str] = None
     load_last_checkpoint: bool = False
+
 
 @dataclass
 class GeneralArgs:
