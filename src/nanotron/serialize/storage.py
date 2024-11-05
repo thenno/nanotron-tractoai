@@ -148,7 +148,7 @@ class CachingTractoStorage(Storage):
                     do_download(new_path)
             else:
                 print("Reading file", yt_path, file=sys.stderr)
-                content = self._yt_client.read_file(yt_path)
+                content = self._yt_client.read_file(yt_path).read()
                 print("Writing file", yt_path, file=sys.stderr)
                 metadata = {}
                 if self._yt_client.exists(yt_path + "/@metadata"):
