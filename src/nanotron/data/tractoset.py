@@ -1,3 +1,4 @@
+import sys
 import typing
 import uuid
 import tempfile
@@ -77,8 +78,8 @@ class TractoTableDataset(YtDataset[_T_co]):
         return result
 
     def to_dp(self, start: int, end: int) -> "TractoTableDataset":
+        print(f"new start {start} and end {end}", file=sys.stderr)
         assert start % self.batch_size == 0
-        end -= end % self.batch_size
 
         start = start // self.batch_size
         end = end // self.batch_size
