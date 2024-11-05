@@ -80,7 +80,7 @@ class TractoTableDataset(YtDataset[_T_co]):
 
     def to_dp(self, start: int, end: int) -> "TractoTableDataset":
         assert start % self.batch_size == 0
-        assert end % self.batch_size == 0
+        end -= end % self.batch_size
 
         start = start // self.batch_size
         end = end // self.batch_size
