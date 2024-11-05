@@ -138,7 +138,7 @@ class CachingTractoStorage(Storage):
             yt_path = self._yt_path
             if len(path) > 0:
                 yt_path += "/" + path
-            tp = self._yt_client.get(yt_path + "/@")
+            tp = self._yt_client.get(yt_path + "/@type")
             if tp == "map_node":
                 self._local_storage.create_directory(path)
                 for child in self._yt_client.list(yt_path):
