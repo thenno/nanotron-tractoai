@@ -64,6 +64,9 @@ class TractoTableDataset(YtDataset[_T_co]):
             for raw in batch:
                 yield self._unfold_raw(raw)
 
+    def __len__(self) -> int:
+        return super().__len__() * self.batch_size
+
     def _unfold_raw(self, raw: dict[str, Tensor]) -> dict[str, Tensor]:
         input_ids = raw["input_ids"]
 
@@ -76,6 +79,12 @@ class TractoTableDataset(YtDataset[_T_co]):
         return result
 
     def to_dp(self, start: int, end: int) -> "TractoTableDataset":
+        assert start % self.batch_size == 0
+        assert end % self.batch_size == 0
+
+        start = start // self.batch_size
+        end = end // self.batch_size
+
         return TractoTableDataset(
             yt_client=self.yt_client,
             path=self.path,
