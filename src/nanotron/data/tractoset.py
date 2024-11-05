@@ -7,7 +7,7 @@ import fsspec
 import torch
 import numpy as np
 import yt.wrapper as yt
-from torch.utils.data import Sampler
+from torch import Tensor
 
 from tractorun.backend.tractorch.dataset import YtDataset
 from tractorun.backend.tractorch.serializer import TensorSerializer
@@ -36,6 +36,7 @@ class TractoTableDataset(YtDataset):
         self,
         yt_client: yt.YtClient,
         path: str,
+        sequence_length: int,
         start: int = 0,
         end: int | None = None,
         columns: list | None = None,
@@ -45,6 +46,7 @@ class TractoTableDataset(YtDataset):
         self.start = start
         self.end = end
         self.columns = columns
+        self.sequence_length = sequence_length
 
         super().__init__(
             yt_client=yt_client,
@@ -54,6 +56,21 @@ class TractoTableDataset(YtDataset):
             columns=columns,
             transform=YTTensorTransform(),
         )
+
+    def _extend_raw(self, raw: dict) -> dict:
+        input_ids: Tensor = raw["input_ids"]
+        batch_size, expanded_input_length = input_ids.shape
+
+        result: dict[str, torch.Tensor] = {
+            "input_ids": input_ids[:, :-1],
+            "input_mask": torch.ones((batch_size, self.sequence_length), dtype=torch.bool),
+            "label_ids": input_ids[:, 1:],
+            "label_mask": torch.ones((batch_size, self.sequence_length), dtype=torch.bool)}
+        return result
+
+    def __iter__(self) -> typing.Iterable[dict]:
+        for raw in super().__iter__():
+            yield self._extend_raw(raw)
 
     def to_dp(self, start: int, end: int) -> "TractoTableDataset":
         return TractoTableDataset(
