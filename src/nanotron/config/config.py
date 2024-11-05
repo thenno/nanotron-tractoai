@@ -203,6 +203,7 @@ class TractoCheckpointsArgs:
     resume_checkpoint_path: Optional[str] = None
     checkpoints_medium: Optional[str] = None
     load_last_checkpoint: bool = False
+    tmpfs_path: Optional[str] = None
 
 
 @dataclass
