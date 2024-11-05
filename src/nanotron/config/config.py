@@ -125,6 +125,7 @@ class TractoTableDatasetArgs:
     tracto_dataset: Literal["yt_table"]
     # it's much better to merge multiple tables into single one
     yt_dataset_path: str
+    dataset_batch_size: int
 
 
 @dataclass

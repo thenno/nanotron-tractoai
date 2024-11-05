@@ -213,6 +213,8 @@ def get_dataloader_from_data_stage(
             train_dataset = TractoTableDataset(
                 yt_client=toolbox.yt_client,
                 path=data.dataset.yt_dataset_path,
+                batch_size=data.dataset.dataset_batch_size,
+                sequence_length=trainer.sequence_length,
             )
             train_dataloader = build_tractoloader(
                 train_dataset,
