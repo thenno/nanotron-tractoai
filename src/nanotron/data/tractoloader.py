@@ -56,8 +56,9 @@ def get_sampled_dataset(
 ) -> TractoTableDataset:
     # here we just drop line that do not fit into the last chunk
     dp_chunk_size = len(train_dataset) // dl_ranks_size
+    dp_chunk_size = dp_chunk_size - dp_chunk_size % train_dataset.batch_size
     start = dl_rank * dp_chunk_size
-    end = start + dp_chunk_size - 1
+    end = start + dp_chunk_size
 
     if consumed_raws:
         start = start + consumed_raws
