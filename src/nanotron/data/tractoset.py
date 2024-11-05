@@ -75,6 +75,8 @@ class TractoTableDataset(YtDataset[_T_co]):
             "label_ids": sample[1:],
             "label_mask": torch.ones((self.sequence_length,), dtype=torch.bool),
         }
+        for value in result.values():
+            assert value.shape == (self.sequence_length,)
         return result
 
     def to_dp(self, start: int, end: int) -> "TractoTableDataset":
