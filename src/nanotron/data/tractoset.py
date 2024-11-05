@@ -59,7 +59,6 @@ class TractoTableDataset(YtDataset):
         return TractoTableDataset(
             yt_client=self.yt_client,
             path=self.path,
-            sequence_length=self.sequence_length,
             columns=self.columns,
             end=end,
             start=start,
