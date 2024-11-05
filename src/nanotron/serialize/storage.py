@@ -135,20 +135,23 @@ class CachingTractoStorage(Storage):
         if not self._local_storage:
             return
         def do_download(path):
-            tp = self._yt_client.get(path + "/@")
+            yt_path = self._yt_path
+            if len(path) > 0:
+                yt_path += "/" + path
+            tp = self._yt_client.get(yt_path + "/@")
             if tp == "map_node":
                 self._local_storage.create_directory(path)
-                for child in self._yt_client.list(path):
+                for child in self._yt_client.list(yt_path):
                     do_download(path + "/" + child)
             else:
-                print("Reading file", path, file=sys.stderr)
-                content = self._yt_client.read_file(path)
-                print("Writing file", path, file=sys.stderr)
+                print("Reading file", yt_path, file=sys.stderr)
+                content = self._yt_client.read_file(yt_path)
+                print("Writing file", yt_path, file=sys.stderr)
                 metadata = {}
-                if self._yt_client.exists(path + "/@metadata"):
-                    metadata = self._yt_client.get(path + "/@metadata")
+                if self._yt_client.exists(yt_path + "/@metadata"):
+                    metadata = self._yt_client.get(yt_path + "/@metadata")
                 self._local_storage.write_file(path, content, metadata)
-                print("Done", path, file=sys.stderr)
+                print("Done", yt_path, file=sys.stderr)
         do_download("")
     
     def remove(self):
