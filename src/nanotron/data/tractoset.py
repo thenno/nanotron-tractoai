@@ -61,21 +61,17 @@ class TractoTableDataset(YtDataset[_T_co]):
 
     def __iter__(self) -> typing.Iterator[_T_co]:
         for batch in super().__iter__():
-            import sys
-            print("there is a batch ", batch, file=sys.stderr)
-            for raw in batch:
-                yield self._unfold_raw(raw)
+            for sample in batch["input_ids"]:
+                yield self._unfold_raw(sample)
 
     def __len__(self) -> int:
         return super().__len__() * self.batch_size
 
-    def _unfold_raw(self, raw: dict[str, Tensor]) -> dict[str, Tensor]:
-        input_ids = raw["input_ids"]
-
+    def _unfold_raw(self, sample: Tensor) -> dict[str, Tensor]:
         result = {
-            "input_ids": input_ids[:-1],
+            "input_ids": sample[:-1],
             "input_mask": torch.ones((self.sequence_length,), dtype=torch.bool),
-            "label_ids": input_ids[1:],
+            "label_ids": sample[1:],
             "label_mask": torch.ones((self.sequence_length,), dtype=torch.bool),
         }
         return result
