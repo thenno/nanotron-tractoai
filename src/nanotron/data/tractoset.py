@@ -7,7 +7,7 @@ import fsspec
 import torch
 import numpy as np
 import yt.wrapper as yt
-from torch.utils.data import Sampler
+from torch import Tensor
 
 from tractorun.backend.tractorch.dataset import YtDataset
 from tractorun.backend.tractorch.serializer import TensorSerializer
@@ -30,12 +30,14 @@ class YTTensorTransform:
         }
 
 
-class TractoTableDataset(YtDataset):
+class TractoTableDataset(YtDataset[_T_co]):
     # the most optimal way to process datasets
     def __init__(
         self,
         yt_client: yt.YtClient,
         path: str,
+        batch_size: int,
+        sequence_length: int,
         start: int = 0,
         end: int | None = None,
         columns: list | None = None,
@@ -45,6 +47,8 @@ class TractoTableDataset(YtDataset):
         self.start = start
         self.end = end
         self.columns = columns
+        self.batch_size = batch_size
+        self.sequence_length = sequence_length
 
         super().__init__(
             yt_client=yt_client,
@@ -55,11 +59,29 @@ class TractoTableDataset(YtDataset):
             transform=YTTensorTransform(),
         )
 
+    def __iter__(self) -> typing.Iterator[_T_co]:
+        for batch in super().__iter__():
+            for raw in batch:
+                yield self._unfold_raw(raw)
+
+    def _unfold_raw(self, raw: dict[str, Tensor]) -> dict[str, Tensor]:
+        input_ids = raw["input_ids"]
+
+        result = {
+            "input_ids": input_ids[:-1],
+            "input_mask": torch.ones((self.sequence_length,), dtype=torch.bool),
+            "label_ids": input_ids[1:],
+            "label_mask": torch.ones((self.sequence_length,), dtype=torch.bool),
+        }
+        return result
+
     def to_dp(self, start: int, end: int) -> "TractoTableDataset":
         return TractoTableDataset(
             yt_client=self.yt_client,
             path=self.path,
+            batch_size=self.batch_size,
             columns=self.columns,
+            sequence_length=self.sequence_length,
             end=end,
             start=start,
         )

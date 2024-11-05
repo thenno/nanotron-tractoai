@@ -56,8 +56,11 @@ def get_sampled_dataset(
 ) -> TractoTableDataset:
     # here we just drop line that do not fit into the last chunk
     dp_chunk_size = len(train_dataset) // dl_ranks_size
-    start = dl_rank * dp_chunk_size
-    end = start + dp_chunk_size - 1
+    chunk_size, remainder = dp_chunk_size // train_dataset.batch_size, dp_chunk_size % train_dataset.batch_size
+    if remainder:
+        raise Exception(f"dl_ranks_size {dl_ranks_size} must be divisible dataset batch size {train_dataset.batch_size}")
+    start = dl_rank * chunk_size
+    end = start + chunk_size - 1
 
     if consumed_raws:
         start = start + consumed_raws
