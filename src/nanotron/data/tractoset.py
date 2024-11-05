@@ -61,6 +61,7 @@ class TractoTableDataset(YtDataset[_T_co]):
 
     def __iter__(self) -> typing.Iterator[_T_co]:
         for batch in super().__iter__():
+            print("there is a batch ", batch)
             for raw in batch:
                 yield self._unfold_raw(raw)
 
