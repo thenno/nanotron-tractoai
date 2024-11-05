@@ -142,7 +142,10 @@ class CachingTractoStorage(Storage):
             if tp == "map_node":
                 self._local_storage.create_directory(path)
                 for child in self._yt_client.list(yt_path):
-                    do_download(path + "/" + child)
+                    new_path = child
+                    if len(path) > 0:
+                        new_path = path + "/" + child
+                    do_download(new_path)
             else:
                 print("Reading file", yt_path, file=sys.stderr)
                 content = self._yt_client.read_file(yt_path)
