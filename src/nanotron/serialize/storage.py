@@ -1,5 +1,6 @@
 import io
 import os
+import sys
 import torch
 
 import yt.wrapper as yt
@@ -8,6 +9,10 @@ from abc import ABC, abstractmethod
 
 
 class Storage(ABC):
+    @abstractmethod
+    def precache(self):
+        ...
+
     @abstractmethod
     def create_directory(self, path: str):
         ...
@@ -45,6 +50,9 @@ class LocalStorage(Storage):
     def __init__(self, base_path: str):
         self._base_path = base_path
 
+    def precache(self):
+        pass
+
     def create_directory(self, path: str):
         os.makedirs(self._get_path(path), exist_ok=True)
 
@@ -80,6 +88,9 @@ class TractoStorage(Storage):
         self._yt_client = yt_client
         self._base_path = base_path
 
+    def precache(self):
+        pass
+
     def create_directory(self, path: str):
         self._yt_client.create(
             "map_node",
@@ -108,3 +119,68 @@ class TractoStorage(Storage):
         if not path:
             return self._base_path
         return self._base_path + "/" + path
+
+
+class CachingTractoStorage(Storage):
+    def __init__(self, yt_path: str, tmpfs_path: str | None, yt_client: yt.YtClient):
+        self._yt_path = yt_path
+        self._yt_client = yt_client
+        self._tmpfs_path = tmpfs_path
+
+        if tmpfs_path is not None:
+            self._local_storage = LocalStorage(tmpfs_path)
+        self._yt_storage = TractoStorage(yt_client, yt_path)
+
+    def precache(self):
+        if not self._local_storage:
+            return
+        def do_download(path):
+            tp = self._yt_client.get(path + "/@")
+            if tp == "map_node":
+                self._local_storage.create_directory(path)
+                for child in self._yt_client.list(path):
+                    do_download(path + "/" + child)
+            else:
+                print("Reading file", path, file=sys.stderr)
+                content = self._yt_client.read_file(path)
+                print("Writing file", path, file=sys.stderr)
+                metadata = {}
+                if self._yt_client.exists(path + "/@metadata"):
+                    metadata = self._yt_client.get(path + "/@metadata")
+                self._local_storage.write_file(path, content, metadata)
+                print("Done", path, file=sys.stderr)
+        do_download("")
+    
+    def remove(self):
+        # TODO(gritukan): We always load checkpoint once per process, so we can leave it as is for now
+        pass
+
+    def create_directory(self, path: str):
+        raise "Not implemented"
+
+    def write_file(self, path: str, data: bytes, metadata: dict[str, str] = {}):
+        raise "Not implemented"
+
+    def read_file(self, path: str) -> bytes:
+        if self._local_storage:
+            return self._local_storage.read_file(path)
+        else:
+            return self._yt_storage.read_file(path)
+        
+    def read_metadata(self, path: str) -> dict[str, str]:
+        if self._local_storage:
+            return self._local_storage.read_metadata(path)
+        else:
+            return self._yt_storage.read_metadata(path)
+
+    def list_dir(self, path: str) -> list[str]:
+        if self._local_storage:
+            return self._local_storage.list_dir(path)
+        else:
+            return self._yt_storage.list_dir(path)
+    
+    def exists(self, path: str) -> bool:
+        if self._local_storage:
+            return self._local_storage.exists(path)
+        else:
+            return self._yt_storage.exists(path)

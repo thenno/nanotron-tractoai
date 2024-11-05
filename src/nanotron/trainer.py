@@ -93,6 +93,7 @@ from nanotron.serialize import (
     save_random_states,
     LocalStorage,
     TractoStorage,
+    CachingTractoStorage,
 )
 from nanotron.serialize.metadata import DataStageMetadata, TrainingMetadata
 from nanotron.serialize.optimizer import load_optimizer
@@ -160,6 +161,12 @@ class DistributedTrainer:
         set_ranks_logging_level(parallel_context=self.parallel_context, logging_config=self.config.logging)
 
         self.pre_init()
+
+        if self.init_checkpoint_storage is not None:
+            if os.environ["LOCAL_RANK"] == "0":
+                self.init_checkpoint_storage.precache()
+            # Wait until everyone downloaded the checkpoint.
+            dist.barrier()
 
         # Log benchmark info
         if os.environ.get("NANOTRON_BENCHMARK", "0") == "1":
@@ -314,7 +321,11 @@ class DistributedTrainer:
                     if checkpoint_index >= 0:
                         checkpoint_id = checkpoint_ids[checkpoint_index]
                         log_rank(f"Found valid checkpoint {checkpoint_id}", logger=logger, level=logging.INFO)
-                        self.init_checkpoint_storage = TractoStorage(ytc, checkpoints_path + "/" + str(checkpoint_id))
+                        self.init_checkpoint_storage = CachingTractoStorage(
+                            checkpoints_path + "/" + str(checkpoint_id),
+                            self.config.tracto_checkpoints.tmpfs_path,
+                            ytc,
+                        )
                         ytc.set(incarnation_dir + "/@checkpoint_id", checkpoint_id)
                     else:
                         log_rank("No valid checkpoints found", logger=logger, level=logging.INFO)
@@ -330,7 +341,11 @@ class DistributedTrainer:
                             pass
                     log_rank(f"Rank 0 found checkpoint {checkpoint_id}", logger=logger, level=logging.INFO)
                     if checkpoint_id >= 0:
-                        self.init_checkpoint_storage = TractoStorage(ytc, checkpoints_path + "/" + str(checkpoint_id))
+                        self.init_checkpoint_storage = CachingTractoStorage(
+                            checkpoints_path + "/" + str(checkpoint_id),
+                            self.config.tracto_checkpoints.tmpfs_path,
+                            ytc,
+                        )
                     else:
                         self.init_checkpoint_storage = None
         elif local_path is not None:
