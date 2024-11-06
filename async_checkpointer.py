@@ -32,8 +32,8 @@ def get_client():
     return yt_client
 
 
-checkpoint_path = sys.argv[0]
-yt_path = sys.argv[1]
+checkpoint_path = sys.argv[1]
+yt_path = sys.argv[2]
 
 
 ytc = get_client()
