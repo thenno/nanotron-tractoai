@@ -96,11 +96,12 @@ def build_tractoloader(
         consumed_raws=(consumed_train_samples // dp_ranks_size),
     )
 
-    # each iteration time dataloader reads
+    # each iteration dataloader reads
     # token_size * micro_batch_size * sequence_length
     # 2 * 8 * 2048 = 32768 bytes -> 0.03125 MB
     # yt.read_table reads 8 MB each time
-    # we have to load more data that yt reads
+    # https://github.com/ytsaurus/ytsaurus/blob/d2686e4ebe0c8484c92de15a789b99c4494b47e1/yt/python/yt/wrapper/default_config.py#L493
+    # we have to load more data that read_table reads
     # 8MiB / 0.03125MiB = 256
     # so let use prefetch_factor = 256 * 2 = 512
     return DataLoader(
