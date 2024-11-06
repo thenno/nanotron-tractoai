@@ -33,11 +33,11 @@ def get_client():
 
 
 checkpoints_path = sys.argv[1]
-yt_path = sys.argv[2]
+yt_checkpoints_path = sys.argv[2]
 
 
 ytc = get_client()
-log(f"Starting checkpoint uploader with checkpoint path: {checkpoints_path} and yt_path: {yt_path}")
+log(f"Starting checkpoint uploader with checkpoint path: {checkpoints_path} and yt_path: {yt_checkpoints_path}")
 
 while True:
     checkpoints = os.listdir(checkpoints_path)
@@ -58,7 +58,7 @@ while True:
 
         def dfs(path):
             local_path = f"{checkpoint_path}/{path}"
-            yt_path = f"{yt_path}/{path}"
+            yt_path = f"{yt_checkpoints_path}/{path}"
 
             if os.path.isdir(local_path):
                 log(f"Creating directory {yt_path}")
