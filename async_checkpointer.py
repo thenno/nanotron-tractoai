@@ -68,7 +68,7 @@ while True:
             else:
                 log(f"Uploading file {yt_path}")
                 with open(local_path, "rb") as f:
-                    ytc.write_file(f, yt_path)
+                    ytc.write_file(yt_path, f)
         dfs(checkpoint)
 
         log(f"Checkpoint {checkpoint} uploaded successfully")
