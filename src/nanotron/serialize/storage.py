@@ -129,7 +129,8 @@ class CachingTractoStorage(Storage):
 
         if tmpfs_path is not None:
             self._local_storage = LocalStorage(tmpfs_path)
-        self._local_storage = None
+        else:
+            self._local_storage = None
         self._yt_storage = TractoStorage(yt_client, yt_path)
 
     def precache(self):
