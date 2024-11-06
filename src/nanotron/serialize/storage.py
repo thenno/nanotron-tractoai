@@ -101,7 +101,7 @@ class TractoStorage(Storage):
         yt_client_config["remote_temp_tables_directory"] = tmp_dir
         yt_client_config["proxy"]["content_encoding"] = "identity"
         yt_client_config["write_parallel"]["enable"] = True
-        yt_client_config["memory_limit"]["memory_limit"] = 20 * yt.common.GB
+        yt_client_config["write_parallel"]["memory_limit"] = 20 * yt.common.GB
         yt_client = yt.YtClient(config=yt_client_config)
         yt_client.create(
             "map_node",
