@@ -61,6 +61,9 @@ while True:
             local_path = f"{checkpoints_path}/{path}"
             yt_path = f"{yt_checkpoints_path}/{path}"
 
+            if local_path == f"{checkpoint_path}/latest.txt":
+                return
+
             if os.path.isdir(local_path):
                 log(f"Creating directory {yt_path}")
                 ytc.create("map_node", yt_path, ignore_existing=True, recursive=True)
@@ -71,6 +74,10 @@ while True:
                 with open(local_path, "rb") as f:
                     ytc.write_file(yt_path, f)
         dfs(checkpoint)
+
+        # Store latest.txt last.
+        with open(f"{checkpoint_path}/latest.txt", "rb") as f:
+            ytc.write_file(f"{yt_checkpoints_path}/{checkpoint}/latest.txt", f)
 
         log(f"Checkpoint {checkpoint} uploaded successfully")
         log(f"Removing checkpoint {checkpoint}")
