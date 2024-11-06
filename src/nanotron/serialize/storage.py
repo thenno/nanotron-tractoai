@@ -99,6 +99,13 @@ class TractoStorage(Storage):
         yt_client_config = yt.config.get_config(yt_client)
         yt_client_config["remote_temp_files_directory"] = tmp_dir
         yt_client_config["remote_temp_tables_directory"] = tmp_dir
+        yt_client_config["backend"] = "rpc"
+        yt_client_config["driver_address_resolver_config"] = {
+            "enable_ipv4": True,
+            "enable_ipv6": True,
+        }
+        yt_client_config["proxy"]["force_ipv4"] = False
+        yt_client_config["proxy"]["force_ipv6"] = True
         yt_client = yt.YtClient(config=yt_client_config)
         yt_client.create(
             "map_node",
