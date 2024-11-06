@@ -50,6 +50,7 @@ class TractoTableDataset(YtDataset[_T_co]):
         self.columns = columns
         self.batch_size = batch_size
         self.sequence_length = sequence_length
+        self.yt_client.write_file
 
         super().__init__(
             yt_client=yt_client,
