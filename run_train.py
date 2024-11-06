@@ -286,8 +286,8 @@ def get_args():
 if __name__ == "__main__":
     toolbox = prepare_and_get_toolbox(backend=Tractorch())
     yt_client_config = yt.config.get_config(toolbox.yt_client)
-    yt_client_config["proxy"]["force_ipv4"] = False
-    yt_client_config["proxy"]["force_ipv6"] = True
+    yt_client_config["proxy"]["force_ipv4"] = True
+    yt_client_config["proxy"]["force_ipv6"] = False
     toolbox.yt_client = yt.YtClient(config=yt_client_config)
     os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
     args = get_args()
