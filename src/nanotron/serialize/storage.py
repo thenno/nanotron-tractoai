@@ -95,15 +95,25 @@ class TractoStorage(Storage):
 
     @staticmethod
     def _fix_client(yt_client: yt.YtClient, base_path: str):
+        tmp_dir = "//tmp/nanotron_checkpoints_tmp"
         yt_client_config = yt.config.get_config(yt_client)
-        yt_client_config.config["remote_temp_files_directory"] = f"{base_path}/tmp"
-        yt_client_config.config["remote_temp_tables_directory"] = f"{base_path}/tmp"
+        yt_client_config["remote_temp_files_directory"] = tmp_dir
+        yt_client_config["remote_temp_tables_directory"] = tmp_dir
         yt_client = yt.YtClient(config=yt_client_config)
         yt_client.create(
             "map_node",
-            f"{base_path}/tmp",
+            tmp_dir,
             recursive=True,
             ignore_existing=True,
+            attributes={
+                "primary_medium": "nvme",
+                "media": {
+                    "nvme": {
+                        "replication_factor": 3,
+                        "data_parts_only": False,
+                    },
+                },
+            },
         )
         return yt_client
 
