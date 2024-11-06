@@ -83,6 +83,6 @@ while True:
         log(f"Removing checkpoint {checkpoint}")
         shutil.rmtree(checkpoint_path)
     except Exception as e:
-        log(f"Error uploading checkpoint {checkpoint}: {e}, sleeping for 10 seconds")
+        log(f"Checkpoint isn't ready {checkpoint}: {e}, sleeping for 10 seconds")
         time.sleep(10)
         continue
