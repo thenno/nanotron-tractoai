@@ -73,7 +73,7 @@ while True:
 
         log(f"Checkpoint {checkpoint} uploaded successfully")
         log(f"Removing checkpoint {checkpoint}")
-        os.rmdir(f"{checkpoint_path}/{checkpoint}")
+        os.rmdir(checkpoint_path)
     except Exception as e:
         log(f"Error uploading checkpoint {checkpoint}: {e}, sleeping for 10 seconds")
         time.sleep(10)
