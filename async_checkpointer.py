@@ -57,7 +57,7 @@ while True:
         log(f"Uploading checkpoint {checkpoint}")
 
         def dfs(path):
-            local_path = f"{checkpoint_path}/{path}"
+            local_path = f"{checkpoints_path}/{path}"
             yt_path = f"{yt_checkpoints_path}/{path}"
 
             if os.path.isdir(local_path):
