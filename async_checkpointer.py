@@ -32,21 +32,22 @@ def get_client():
     return yt_client
 
 
-checkpoint_path = sys.argv[1]
+checkpoints_path = sys.argv[1]
 yt_path = sys.argv[2]
 
 
 ytc = get_client()
-log(f"Starting checkpoint uploader with checkpoint path: {checkpoint_path} and yt_path: {yt_path}")
+log(f"Starting checkpoint uploader with checkpoint path: {checkpoints_path} and yt_path: {yt_path}")
 
 while True:
-    checkpoints = os.listdir(checkpoint_path)
+    checkpoints = os.listdir(checkpoints_path)
     if len(checkpoints) == 0:
         log("No checkpoints found, sleeping for 10 seconds")
         time.sleep(10)
         continue
     checkpoint = checkpoints[0]
     log(f"Found checkpoint: {checkpoint}")
+    checkpoint_path = f"{checkpoints_path}/{checkpoint}"
     try:
         with open(f"{checkpoint_path}/latest.txt", "r") as f:
             data = f.read()
