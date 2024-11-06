@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import time
 import yt.wrapper as yt
@@ -73,7 +74,7 @@ while True:
 
         log(f"Checkpoint {checkpoint} uploaded successfully")
         log(f"Removing checkpoint {checkpoint}")
-        os.rmdir(checkpoint_path)
+        shutil.rmtree(checkpoint_path)
     except Exception as e:
         log(f"Error uploading checkpoint {checkpoint}: {e}, sleeping for 10 seconds")
         time.sleep(10)
