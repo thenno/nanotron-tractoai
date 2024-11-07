@@ -27,6 +27,7 @@ from nanotron.generation.decode import (
     decode_text,
     decode_tokenized,
 )
+from nanotron.generation.sampler import SamplerType
 from nanotron.logging import log_rank, set_ranks_logging_level
 from nanotron.models import build_model
 from nanotron.parallel import ParallelContext
@@ -191,7 +192,7 @@ def main():
             parallel_context=parallel_context,
             max_new_tokens=args.max_new_tokens,
             max_micro_batch_size=2,
-            generation_config=GenerationArgs(sampler="greedy", use_cache=True),
+            generation_config=GenerationArgs(sampler=SamplerType.TOP_K, use_cache=True),
             tokenizer_config=TokenizerConfig(max_input_length=None),
             is_bench=os.environ.get("USE_BENCH", "0") == "1",
         )
