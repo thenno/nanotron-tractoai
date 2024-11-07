@@ -42,8 +42,11 @@ from nanotron.random import (
     get_synced_random_state,
     set_random_seed,
 )
-from nanotron.serialize import load_weights
+from nanotron.serialize import load_weights, TractoStorage
 from nanotron.trainer import CONFIG_TO_MODEL_CLASS, mark_tied_parameters
+
+import yt.wrapper as yt
+
 
 try:
     from transformers import AutoTokenizer
@@ -55,7 +58,8 @@ logger = logging.get_logger(__name__)
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ckpt-path", type=Path, required=True, help="Checkpoint path")
+    parser.add_argument("--config-path", type=str, required=True, help="Config path")
+    parser.add_argument("--ckpt-path", type=str, required=True, help="Checkpoint path")
     parser.add_argument("--dp", type=int, default=1)
     parser.add_argument("--pp", type=int, default=0)
     parser.add_argument("--tp", type=int, default=0)
@@ -66,9 +70,7 @@ def get_args():
 def main():
     args = get_args()
 
-    assert args.ckpt_path.exists(), f"Checkpoint path {args.ckpt_path} does not exist"
-
-    config = get_config_from_file((args.ckpt_path / "config.yaml").as_posix())
+    config = get_config_from_file(args.config_path)
     model_config = config.model.model_config
     tokenizer_path = config.tokenizer.tokenizer_name_or_path
 
@@ -146,7 +148,10 @@ def main():
         level=logging.INFO,
         rank=0,
     )
-    load_weights(model=model, parallel_context=parallel_context, root_folder=checkpoint_path)
+
+    ytc = yt.YtClient(config=yt.default_config.get_config_from_env())
+    storage = TractoStorage(yt_client=ytc, base_path=args.ckpt_path)
+    load_weights(model=model, parallel_context=parallel_context, storage=storage)
 
     model.eval()
     if AutoTokenizer is not None:
