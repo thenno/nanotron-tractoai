@@ -45,6 +45,9 @@ from nanotron.random import (
 from nanotron.serialize import load_weights, TractoStorage
 from nanotron.trainer import CONFIG_TO_MODEL_CLASS, mark_tied_parameters
 
+from tractorun.run import prepare_and_get_toolbox
+from tractorun.backend.tractorch import Tractorch
+
 import yt.wrapper as yt
 
 
@@ -68,6 +71,9 @@ def get_args():
 
 
 def main():
+    toolbox = prepare_and_get_toolbox(backend=Tractorch())
+    os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
+
     args = get_args()
 
     config = get_config_from_file(args.config_path)
