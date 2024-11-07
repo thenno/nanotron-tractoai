@@ -192,7 +192,7 @@ def main():
             parallel_context=parallel_context,
             max_new_tokens=args.max_new_tokens,
             max_micro_batch_size=2,
-            generation_config=GenerationArgs(sampler=SamplerType.TOP_K, use_cache=True, top_k=10, temperature=0.5),
+            generation_config=GenerationArgs(sampler=SamplerType.TOP_P, use_cache=True, top_p=0.8, temperature=0.5),
             tokenizer_config=TokenizerConfig(max_input_length=None),
             is_bench=os.environ.get("USE_BENCH", "0") == "1",
         )
