@@ -142,6 +142,9 @@ class GreedySampler(Sampler):
         sharded_max_values = torch.cat(local_max_values_out, dim=-1)  # [sharded_batch_size, num_shards]
         sharded_max_indices = torch.cat(local_max_indices_out, dim=-1)  # [sharded_batch_size, num_shards]
 
+        import sys
+        print("sharded_max_values", sharded_max_values, file=sys.stderr)
+
         # Find global max logit across all shards
         # Note that max is deterministic, and always takes the first one.
         # [sharded_batch_size, 1]
