@@ -98,8 +98,6 @@ class GreedySampler(Sampler):
         for output in sharded_logits:
             logits = [x.item() for x in output]
             logits.sort(reverse=True)
-            import sys
-            print("LOGITS", logits[:10], file=sys.stderr)
 
         # Find local max logit and its index
         # Note that max is deterministic, and always takes the first one.
