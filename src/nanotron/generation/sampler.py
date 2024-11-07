@@ -95,6 +95,12 @@ class GreedySampler(Sampler):
     def __call__(self, sharded_logits: torch.Tensor) -> torch.Tensor:
         batch_size, vocab_per_shard = sharded_logits.shape
 
+        for output in sharded_logits:
+            logits = [x.item() for x in output]
+            logits.sort(reverse=True)
+            import sys
+            print("LOGITS", logits[:10], file=sys.stderr)
+
         # Find local max logit and its index
         # Note that max is deterministic, and always takes the first one.
         max_values, max_indices = sharded_logits.max(dim=-1, keepdim=True)  # [batch_size, 1]
@@ -141,9 +147,6 @@ class GreedySampler(Sampler):
         # Concat assumes that the primary dimension is the same across all shards
         sharded_max_values = torch.cat(local_max_values_out, dim=-1)  # [sharded_batch_size, num_shards]
         sharded_max_indices = torch.cat(local_max_indices_out, dim=-1)  # [sharded_batch_size, num_shards]
-
-        import sys
-        print("sharded_max_values", sharded_max_values, file=sys.stderr)
 
         # Find global max logit across all shards
         # Note that max is deterministic, and always takes the first one.
