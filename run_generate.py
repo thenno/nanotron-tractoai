@@ -212,6 +212,13 @@ def main():
             )
 
             log_rank(
+                f"tokens: {generated_ids}",
+                logger=logger,
+                level=logging.INFO,
+                rank=0,
+            )
+
+            log_rank(
                 f"generation: {tokenizer.decode(generated_ids[len(input_ids) :], clean_up_tokenization_spaces=False)}",
                 logger=logger,
                 level=logging.INFO,
