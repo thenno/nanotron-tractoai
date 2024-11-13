@@ -17,6 +17,10 @@ from nanotron.models.llama import LlamaForTraining
 from transformers import AutoTokenizer, LlamaForCausalLM
 from transformers import LlamaConfig as HFLlamaConfig
 
+import os
+import yt.wrapper as yt
+
+
 TEST_PROMPT = "What is the meaning of the word chutzpah?\nThe word chutzpah means"
 
 
@@ -97,18 +101,19 @@ def get_hf_config(config: NanotronLlamaConfig) -> HFLlamaConfig:
     return HFLlamaConfig(**attrs)
 
 
-def convert_checkpoint_and_save(checkpoint_path: Path, save_path: Path, tokenizer_name: Optional[str] = None):
+def convert_checkpoint_and_save(checkpoint_yt_path: str, save_yt_path: str, tokenizer_name: Optional[str] = None):
     """Loads the nanotron checkpoint in `checkpoint_path`, creates
     a new huggingface instance, copies the weights from the nanotron checkpoint
     and saves the transformed huggingface to `save_path`."""
 
     # Init nanotron model.
-    with open(checkpoint_path / "model_config.json", "r") as f:
-        attrs = json.load(f)
-        model_config = NanotronLlamaConfig(**attrs)
+
+    raw_config = yt.read_file(checkpoint_yt_path + "/model_config.json").read().decode()
+    attrs = json.loads(raw_config)
+    model_config = NanotronLlamaConfig(**attrs)
     nanotron_model = load_nanotron_model(
         model_config=model_config,
-        checkpoint_path=checkpoint_path,
+        checkpoint_yt_path=checkpoint_yt_path,
     )
     # Init huggingface model.
     with init_on_device_and_dtype(torch.device("cuda"), torch.bfloat16):
@@ -118,11 +123,24 @@ def convert_checkpoint_and_save(checkpoint_path: Path, save_path: Path, tokenize
     # Copy weights, initialize tokenizer and save model.
     if tokenizer_name is not None:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-        tokenizer.save_pretrained(save_path)
+        tokenizer.save_pretrained("./model")
     convert_nt_to_hf(nanotron_model, hf_model, model_config)
-    hf_model.save_pretrained(save_path)
-    print(f"Model saved to {save_path}")
-
+    hf_model.save_pretrained("./model")
+    def dfs(path):
+        local_path = "./model"
+        yt_path = save_yt_path
+        if path:
+            local_path = f"{local_path}/{path}"
+            yt_path = f"{yt_path}/{path}"
+        if os.path.isdir(local_path):
+            yt.create("map_node", yt_path, ignore_existing=True)
+            for file in os.listdir(local_path):
+                dfs(f"{path}/{file}")
+        else:
+            with open(local_path, "rb") as f:
+                data = f.read()
+                yt.write_file(yt_path, data)
+    dfs("")
 
 def check_converted_model_generation(save_path: Path):
     """Loads a huggingface model and tokenizer from `save_path` and
@@ -139,16 +157,16 @@ def check_converted_model_generation(save_path: Path):
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Convert Nanotron weights to HF format")
-    parser.add_argument("--checkpoint_path", type=Path, default="llama-7b", help="Path to the checkpoint")
-    parser.add_argument("--save_path", type=Path, default="llama-7b-hf", help="Path to save the HF model")
+    parser.add_argument("--checkpoint_yt_path", type=str, default="llama-7b", help="Path to the checkpoint")
+    parser.add_argument("--save_yt_path", type=str, default="llama-7b-hf", help="Path to save the HF model")
     parser.add_argument("--tokenizer_name", type=str, default="meta-llama/Llama-2-7b-chat-hf")
     args = parser.parse_args()
 
     # Convert Nanotron model to HF format.
     convert_checkpoint_and_save(
-        checkpoint_path=args.checkpoint_path, save_path=args.save_path, tokenizer_name=args.tokenizer_name
+        checkpoint_yt_path=args.checkpoint_yt_path, save_yt_path=args.save_yt_path, tokenizer_name=args.tokenizer_name
     )
 
     # Check if the conversion was successful by generating some text.
-    if args.tokenizer_name is not None:
-        check_converted_model_generation(save_path=args.save_path)
+    # if args.tokenizer_name is not None:
+    #    check_converted_model_generation(save_path=args.save_path)
