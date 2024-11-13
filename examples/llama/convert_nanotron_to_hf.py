@@ -20,6 +20,9 @@ from transformers import LlamaConfig as HFLlamaConfig
 import os
 import yt.wrapper as yt
 
+from tractorun.run import prepare_and_get_toolbox
+from tractorun.backend.tractorch import Tractorch
+
 
 TEST_PROMPT = "What is the meaning of the word chutzpah?\nThe word chutzpah means"
 
@@ -156,6 +159,9 @@ def check_converted_model_generation(save_path: Path):
 
 
 if __name__ == "__main__":
+    toolbox = prepare_and_get_toolbox(backend=Tractorch())
+    os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
+
     parser = ArgumentParser(description="Convert Nanotron weights to HF format")
     parser.add_argument("--checkpoint_yt_path", type=str, default="llama-7b", help="Path to the checkpoint")
     parser.add_argument("--save_yt_path", type=str, default="llama-7b-hf", help="Path to save the HF model")
