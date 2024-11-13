@@ -123,11 +123,11 @@ def convert_checkpoint_and_save(checkpoint_yt_path: str, save_yt_path: str, toke
     # Copy weights, initialize tokenizer and save model.
     if tokenizer_name is not None:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-        tokenizer.save_pretrained("./model")
+        tokenizer.save_pretrained("/slot/sandbox/model")
     convert_nt_to_hf(nanotron_model, hf_model, model_config)
-    hf_model.save_pretrained("./model")
+    hf_model.save_pretrained("/slot/sandbox/model")
     def dfs(path):
-        local_path = "./model"
+        local_path = "/slot/sandbox/model"
         yt_path = save_yt_path
         if path:
             local_path = f"{local_path}/{path}"
