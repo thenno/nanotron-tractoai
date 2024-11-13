@@ -141,6 +141,6 @@ def load_nanotron_model(
         ytc = yt.YtClient(config=yt.default_config.get_config_from_env())
         storage = nanotron.serialize.TractoStorage(ytc, checkpoint_yt_path)
         nanotron.serialize.load_weights(
-            model=nanotron_model, parallel_context=parallel_context, root_folder=storage,
+            model=nanotron_model, parallel_context=parallel_context, storage=storage,
         )
     return nanotron_model
