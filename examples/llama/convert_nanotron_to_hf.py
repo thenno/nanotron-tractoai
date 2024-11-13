@@ -133,7 +133,7 @@ def convert_checkpoint_and_save(checkpoint_yt_path: str, save_yt_path: str, toke
             local_path = f"{local_path}/{path}"
             yt_path = f"{yt_path}/{path}"
         if os.path.isdir(local_path):
-            yt.create("map_node", yt_path, ignore_existing=True)
+            yt.create("map_node", yt_path, ignore_existing=True, recursive=True)
             for file in os.listdir(local_path):
                 dfs(f"{path}/{file}")
         else:
