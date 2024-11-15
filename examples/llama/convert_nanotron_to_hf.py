@@ -39,11 +39,12 @@ def _handle_attention_block(
     # to ensure correct transformation to huggingface.
 
     def interleave(w: torch.Tensor):
-        w_new = []
-        for head_w in w.split(d_qk):
-            head_w = head_w.view(d_qk // 2, 2, -1).transpose(0, 1).reshape(d_qk, -1)
-            w_new.append(head_w)
-        return torch.cat(w_new)
+        return w
+        # w_new = []
+        # for head_w in w.split(d_qk):
+        #     head_w = head_w.view(d_qk // 2, 2, -1).transpose(0, 1).reshape(d_qk, -1)
+        #     w_new.append(head_w)
+        # return torch.cat(w_new)
 
     assert part in ["q", "k", "v"], "part must be one of [q, k, v]"
 
