@@ -39,11 +39,12 @@ def _handle_attention_block(
     # to ensure correct transformation to huggingface.
 
     def interleave(w: torch.Tensor):
-        w_new = []
-        for head_w in w.split(d_qk):
-            head_w = head_w.view(d_qk // 2, 2, -1).transpose(0, 1).reshape(d_qk, -1)
-            w_new.append(head_w)
-        return torch.cat(w_new)
+        return w
+        # w_new = []
+        # for head_w in w.split(d_qk):
+        #     head_w = head_w.view(d_qk // 2, 2, -1).transpose(0, 1).reshape(d_qk, -1)
+        #     w_new.append(head_w)
+        # return torch.cat(w_new)
 
     assert part in ["q", "k", "v"], "part must be one of [q, k, v]"
 
@@ -111,7 +112,7 @@ def convert_checkpoint_and_save(checkpoint_yt_path: str, save_yt_path: str, toke
 
     # Init nanotron model.
 
-    raw_config = yt.read_file(checkpoint_yt_path + "/model_config.json").read().decode()
+    raw_config = open(checkpoint_yt_path + "/model_config.json", "rb").read().decode()
     attrs = json.loads(raw_config)
     model_config = NanotronLlamaConfig(**attrs)
     nanotron_model = load_nanotron_model(
@@ -126,27 +127,27 @@ def convert_checkpoint_and_save(checkpoint_yt_path: str, save_yt_path: str, toke
     # Copy weights, initialize tokenizer and save model.
     if tokenizer_name is not None:
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-        tokenizer.save_pretrained("/slot/sandbox/model")
+        tokenizer.save_pretrained("/home/gritukan/hf_converted")
     convert_nt_to_hf(nanotron_model, hf_model, model_config)
-    hf_model.save_pretrained("/slot/sandbox/model")
-    def dfs(path):
-        local_path = "/slot/sandbox/model"
-        yt_path = save_yt_path
-        if path:
-            local_path = f"{local_path}/{path}"
-            yt_path = f"{yt_path}/{path}"
-        if os.path.isdir(local_path):
-            yt.create("map_node", yt_path, ignore_existing=True, recursive=True)
-            for file in os.listdir(local_path):
-                if path:
-                    dfs(f"{path}/{file}")
-                else:
-                    dfs(file)
-        else:
-            with open(local_path, "rb") as f:
-                data = f.read()
-                yt.write_file(yt_path, data)
-    dfs("")
+    hf_model.save_pretrained("/home/gritukan/hf_converted")
+    # def dfs(path):
+    #     local_path = "/slot/sandbox/model"
+    #     yt_path = save_yt_path
+    #     if path:
+    #         local_path = f"{local_path}/{path}"
+    #         yt_path = f"{yt_path}/{path}"
+    #     if os.path.isdir(local_path):
+    #         yt.create("map_node", yt_path, ignore_existing=True, recursive=True)
+    #         for file in os.listdir(local_path):
+    #             if path:
+    #                 dfs(f"{path}/{file}")
+    #             else:
+    #                 dfs(file)
+    #     else:
+    #         with open(local_path, "rb") as f:
+    #             data = f.read()
+    #             yt.write_file(yt_path, data)
+    # dfs("")
 
 def check_converted_model_generation(save_path: Path):
     """Loads a huggingface model and tokenizer from `save_path` and
@@ -162,8 +163,13 @@ def check_converted_model_generation(save_path: Path):
 
 
 if __name__ == "__main__":
-    toolbox = prepare_and_get_toolbox(backend=Tractorch())
-    os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
+    #toolbox = prepare_and_get_toolbox(backend=Tractorch())
+    #os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
+    os.environ["WORLD_SIZE"] = "1"
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "29500"
+    os.environ["RANK"] = "0"
+    os.environ["LOCAL_RANK"] = "0"
 
     parser = ArgumentParser(description="Convert Nanotron weights to HF format")
     parser.add_argument("--checkpoint_yt_path", type=str, default="llama-7b", help="Path to the checkpoint")
