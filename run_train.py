@@ -34,6 +34,8 @@ from nanotron.trainer import DistributedTrainer
 from nanotron.utils import main_rank_first
 from torch.utils.data import DataLoader
 
+import yt.wrapper as yt
+
 from tractorun.run import prepare_and_get_toolbox
 from tractorun.backend.tractorch import Tractorch
 
@@ -283,6 +285,15 @@ def get_args():
 
 if __name__ == "__main__":
     toolbox = prepare_and_get_toolbox(backend=Tractorch())
+    yt_client_config = yt.config.get_config(toolbox.yt_client)
+    # yt_client_config["backend"] = "rpc"
+    # yt_client_config["driver_address_resolver_config"] = {
+    #     "enable_ipv4": True,
+    #     "enable_ipv6": True,
+    # }
+    # yt_client_config["proxy"]["force_ipv4"] = False
+    # yt_client_config["proxy"]["force_ipv6"] = True
+    toolbox.yt_client = yt.YtClient(config=yt_client_config)
     os.environ["RANK"] = str(toolbox.coordinator.get_self_index())
     args = get_args()
     config_file = args.config_file
